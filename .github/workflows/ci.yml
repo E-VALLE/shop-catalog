@@ -26,14 +26,14 @@ jobs:
       - run: yarn playwright install --with-deps chromium
       - run: yarn e2e
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
           path: coverage/
           retention-days: 7
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
@@ -56,7 +56,7 @@ jobs:
       - run: yarn build
       - run: npx --yes @lhci/cli@0.15.x autorun
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: lighthouse-report
