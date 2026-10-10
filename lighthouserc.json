@@ -1,0 +1,51 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "yarn preview --port 4173 --strictPort",
+      "startServerReadyPattern": "Local",
+      "url": ["http://localhost:4173/shop-catalog/", "http://localhost:4173/shop-catalog/produtos"],
+      "numberOfRuns": 2,
+      "settings": {
+        "chromeFlags": "--no-sandbox"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": [
+          "error",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "categories:performance": [
+          "error",
+          {
+            "minScore": 0.3
+          }
+        ],
+        "categories:best-practices": [
+          "warn",
+          {
+            "minScore": 0.8
+          }
+        ],
+        "categories:seo": [
+          "warn",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "cumulative-layout-shift": [
+          "warn",
+          {
+            "maxNumericValue": 0.1
+          }
+        ]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci"
+    }
+  }
+}

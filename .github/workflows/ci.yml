@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+
+      - run: yarn format:check
+      - run: yarn tsc -b
+      - run: yarn lint
+      # Vitest com cobertura: falha se ficar abaixo dos limiares definidos em vite.config.ts
+      - run: yarn test:coverage
+
+      - run: yarn playwright install --with-deps chromium
+      - run: yarn e2e
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # Auditoria Lighthouse (build de produção): falha se acessibilidade < 0,9 ou desempenho < 0,3
+  # (piso anti-regressão; a meta de 0,7 está no README). Limiares em lighthouserc.json.
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: npx --yes @lhci/cli@0.15.x autorun
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          retention-days: 7

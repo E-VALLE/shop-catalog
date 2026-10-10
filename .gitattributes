@@ -1,0 +1,3 @@
+# Normaliza fins de linha: o Prettier do CI exige LF (endOfLine: lf)
+* text=auto eol=lf
+*.png binary

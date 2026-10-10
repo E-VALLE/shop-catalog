@@ -1,0 +1,11 @@
+dist
+node_modules
+coverage
+playwright-report
+test-results
+yarn.lock
+README.md
+anexos
+public
+.github
+.lighthouseci

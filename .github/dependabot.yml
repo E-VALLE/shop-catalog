@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Dependências do projeto: agrupadas para gerar poucos PRs; majors vêm separados para revisão.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      mantine:
+        patterns: ["@mantine/*"]
+      testing:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/test", "@axe-core/*", "jsdom"]
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+        exclude-patterns: ["@mantine/*", "vitest", "@vitest/*", "@testing-library/*", "@playwright/test", "@axe-core/*", "jsdom"]
+
+  # Actions usadas nos workflows (checkout, setup-node, pages...).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
