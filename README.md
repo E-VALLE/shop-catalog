@@ -395,7 +395,7 @@ Resultado da revisão sênior (requisitos × boas práticas). Itens marcados ✅
 
 **Em aberto, por escolha:**
 - **Desempenho no Lighthouse** (~0,4 contra a meta de 0,7) e **CLS de `/produtos`** (oscila entre 0 e 0,108): ver "Pacote 8" e "Pacote 9". O piso do CI é 0,3 (anti-regressão); acessibilidade (≥ 0,9) passa com folga.
-- **Primeira execução do CI e do Lighthouse no GitHub:** os jobs foram validados localmente; se o Lighthouse oscilar no *runner*, ajustar `lighthouserc.json`.
+- **CI no GitHub:** na primeira execução (10/10/2026) os jobs `test` (formatação, tipos, lint, Vitest com cobertura e Playwright) e `lighthouse` passaram. O Lighthouse pode oscilar no *runner*; se acontecer, ajustar `lighthouserc.json`.
 - **Regressão visual** roda só localmente (as imagens base são do Windows).
 
 **Decisões deliberadas (não reabrir sem motivo):** só `admin` (não moderador) acessa o painel; sem cadastro de novos usuários; produtos criados no admin não aparecem na loja pública; sem campo de imagem no formulário; sem persistência do admin; `axios` mantido (interceptors do requisito 7); nenhum dado de cartão é pedido no checkout.
