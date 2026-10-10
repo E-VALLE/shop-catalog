@@ -32,7 +32,7 @@ jobs:
       # que carrega o mesmo app e deixa o React Router resolver a URL.
       - run: cp dist/index.html dist/404.html
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
