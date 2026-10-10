@@ -47,6 +47,7 @@ import { FAVORITE_ICON_COLOR, HEADER_BG, HEADER_BORDER } from "../theme/surfaces
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useFavorites } from "../hooks/use-favorites";
+import { useScrollToTop } from "../hooks/use-scroll-to-top";
 
 interface NavItem {
   to: string;
@@ -74,6 +75,7 @@ export function RootLayout() {
   const { pathname } = useLocation();
   const { setColorScheme } = useMantineColorScheme();
   const scheme = useComputedColorScheme("light");
+  useScrollToTop(); // nova rota abre no topo, não na rolagem da anterior
 
   const items = isAdmin ? [...PUBLIC_ITEMS, ...ADMIN_ITEMS] : PUBLIC_ITEMS;
 

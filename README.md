@@ -18,6 +18,7 @@ yarn test:coverage  # idem, com cobertura e limiares mínimos
 yarn format:check   # Prettier (yarn format para corrigir)
 yarn e2e            # Playwright com a API interceptada (faz build + preview na porta 4173)
 yarn e2e:real       # smoke test contra a DummyJSON de verdade
+E2E_BASE_URL=https://e-valle.github.io/shop-catalog/ yarn e2e   # a mesma suíte contra o site publicado (sem build local)
 yarn build          # tsc -b && vite build
 ```
 
@@ -111,6 +112,7 @@ Melhoria de descoberta sugerida durante o uso: a partir do produto o usuário co
 | **Skeletons** em catálogo, Home e detalhes (`components/product-skeleton.tsx`) | Cards-fantasma com a mesma estrutura e altura do `ProductCard`; o contêiner é `role="status"` + `aria-busy` + rótulo ("Carregando produtos...") | Evita o salto de layout (CLS) quando os dados chegam e passa sensação de velocidade; leitores de tela são avisados do carregamento. |
 | **`loading="lazy"` + `decoding="async"`** nas imagens dos cards | Atributos nativos do `<img>` | Hoje 12 imagens eram baixadas de uma vez; imagens fora da tela só carregam ao se aproximar. |
 | **Voltar ao topo e focar o título ao paginar** (`useScrollOnChange`) | Na mudança de página: `scrollTo` (suave) e foco no `<h1>` (`tabIndex={-1}`); respeita `prefers-reduced-motion`; não age na 1ª renderização | O usuário ficava no rodapé da lista; o foco evita que teclado/leitor de tela permaneça no botão da paginação com conteúdo trocado. |
+| **Nova rota abre no topo** (`useScrollToTop`, no `RootLayout`) | Ao mudar de rota (`pathname`), `window.scrollTo(0, 0)`; não age na 1ª renderização, em voltar/avançar (o navegador restaura a posição) nem quando só a busca/filtro/página muda na mesma rota | O React Router (modo declarativo) não restaura a rolagem: no celular, "Detalhes" a partir de uma lista rolada abria a página nova no meio (Avaliações/Relacionados). Achado no site publicado; teste e2e `scroll-reset.spec.ts` (celular e desktop) e unitário do hook. |
 | **Título da aba por rota** (`useDocumentTitle`) | "Móveis · Produtos · Shop Catalog", nome do produto nos detalhes, "Carrinho", etc.; acompanha a troca de idioma | Identifica abas abertas e histórico, anuncia a navegação a leitores de tela e melhora o compartilhamento. |
 
 Testes: unitários dos hooks (inclui `prefers-reduced-motion`, primeira renderização e valores repetidos), das páginas (skeleton, título, rolagem/foco) e e2e `ux-polish.spec.ts` (título por rota/idioma, skeleton com resposta atrasada, rolagem real ao paginar, `loading="lazy"`).

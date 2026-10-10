@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 4173;
+// E2E_BASE_URL aponta a mesma suíte para um site já publicado (ex.: GitHub Pages); sem ela, sobe o build local.
+const LIVE_URL = process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -10,7 +12,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
-    baseURL: `http://localhost:${PORT}/shop-catalog/`,
+    baseURL: LIVE_URL ?? `http://localhost:${PORT}/shop-catalog/`,
     locale: "pt-BR", // specs em português; e2e/i18n.spec.ts sobrescreve por teste
     // O service worker do PWA ignoraria page.route (mocks); só e2e/pwa.spec.ts o liga.
     serviceWorkers: "block",
@@ -43,10 +45,12 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], channel: process.env.E2E_CHANNEL || undefined },
     },
   ],
-  webServer: {
-    command: `yarn build && yarn preview --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}/shop-catalog/`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
+  webServer: LIVE_URL
+    ? undefined
+    : {
+        command: `yarn build && yarn preview --port ${PORT} --strictPort`,
+        url: `http://localhost:${PORT}/shop-catalog/`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000,
+      },
 });
