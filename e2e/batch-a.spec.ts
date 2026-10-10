@@ -34,6 +34,7 @@ test.describe("Home: benefícios, promoções e vistos recentemente", () => {
 
     await page.goto("");
     const onHome = page.getByRole("region", { name: "Vistos recentemente" });
+    await expect(onHome.getByRole("article")).toHaveCount(2); // espera a seção renderizar
     const names = await onHome
       .getByRole("article")
       .evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));

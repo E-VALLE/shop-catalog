@@ -395,6 +395,8 @@ Resultado da revisão sênior (requisitos × boas práticas). Itens marcados ✅
 
 **Última verificação completa (10/10/2026):** Prettier, `tsc` e ESLint limpos; Vitest 568 testes (cobertura 95,2% / 92,3% / 93,1% / 96,5%); e2e 134 testes; regressão visual 10 testes; smoke com a API real (login + papel); `yarn audit` sem vulnerabilidades nas dependências de produção.
 
+**No site publicado (GitHub Pages, 10/10/2026):** a suíte e2e inteira roda contra a URL pública (`E2E_BASE_URL=... yarn e2e`): 135 de 136 passaram na primeira rodada; a falha era uma corrida do próprio teste (lia a lista antes de ela renderizar), corrigida e repetida 6 vezes sem erro. Smoke com a API real passou. Lighthouse na URL pública: acessibilidade 0,95, melhores práticas 1,0, SEO 0,9, CLS 0 e desempenho 0,42–0,44. Links diretos (ex.: `/produtos/4`) respondem com o `404.html` do Pages, que é a própria SPA, então abrem normalmente (o status HTTP 404 é uma limitação do Pages).
+
 **Em aberto, por escolha:**
 - **Desempenho no Lighthouse** (~0,4 contra a meta de 0,7) e **CLS de `/produtos`** (oscila entre 0 e 0,108): ver "Pacote 8" e "Pacote 9". O piso do CI é 0,3 (anti-regressão); acessibilidade (≥ 0,9) passa com folga.
 - **CI no GitHub:** na primeira execução (10/10/2026) os jobs `test` (formatação, tipos, lint, Vitest com cobertura e Playwright) e `lighthouse` passaram. O Lighthouse pode oscilar no *runner*; se acontecer, ajustar `lighthouserc.json`.
