@@ -62,11 +62,13 @@ Rede com proxy/antivírus que impede `yarn playwright install`? Use um navegador
 9. **Playwright** — `e2e/auth.spec.ts` (bloqueio, redirecionamento pós-login, credencial inválida, logout) e `e2e/catalog.spec.ts` (busca → detalhes → carrinho, paginação, link direto e id inválido), além de papéis, checkout/pagamento, admin, PWA e acessibilidade (axe em claro e escuro): **134 testes** com a API interceptada, mais 1 smoke contra a API real e 10 de regressão visual (local). Localizadores semânticos, headless.
 10. **CI/CD** — `.github/workflows/ci.yml` (push/PR: `yarn install --frozen-lockfile`, Prettier, tsc, lint, Vitest com cobertura, Playwright e um job `lighthouse`) e `deploy.yml` (build → `cp dist/index.html dist/404.html` → GitHub Pages). `base: '/shop-catalog/'` no `vite.config.ts` e `BrowserRouter basename`.
 
-### Passos manuais no GitHub
+### Configuração no GitHub (feita)
 
-1. Repositório **público** chamado `shop-catalog`.
-2. _Settings → Pages → Source: GitHub Actions_.
-3. _Settings → Branches → Add rule_ para `main`: _Require a pull request before merging_ e _Require status checks to pass_ (selecione o job `test` do CI).
+1. Repositório **público** `E-VALLE/shop-catalog`.
+2. _Settings → Pages → Source: GitHub Actions_ (o workflow `deploy.yml` publica a cada push na `main`).
+3. _Settings → Rules → Rulesets_: ruleset **`proteger-main`** (ativo) na branch padrão, **sem lista de bypass**, com: _Require a pull request before merging_ (0 aprovações, pois há um só desenvolvedor), _Require status checks to pass_ com os jobs **`test`** e **`lighthouse`** (origem GitHub Actions; "Any source" foi removido para que só os jobs do nosso workflow liberem o merge) e _Block force pushes_ / _Restrict deletions_.
+
+**Por que:** o deploy sai de cada push na `main`; com a regra, só entra código cujo CI passou, e todo ajuste fica registrado em um PR. Não marcamos "Require branches to be up to date" porque, com um único desenvolvedor, só obrigaria a retestar PRs sem ganho. Efeito prático: push direto na `main` é recusado e as mudanças seguem **branch → PR → CI verde → merge**.
 
 ## Idiomas (pt-BR / en)
 
@@ -372,7 +374,7 @@ Resultado da revisão sênior (requisitos × boas práticas). Itens marcados ✅
 - ✅ Code-splitting por rota, `ErrorBoundary`, `strict` explícito, remoção do CSS não usado de `@mantine/dates`, ids locais centralizados em `helpers/ids.ts`, cores adaptativas ao tema escuro nos cards.
 - ✅ **TanStack Query** no lugar de `useAsyncData` (`hooks/use-api-query.ts`, `lib/query-client.ts`): cache, deduplicação (categorias viram uma só requisição, cache de 30 min), cancelamento, retry apenas para rede/5xx e fim do `eslint-disable` de dependências.
 - ✅ **E2E sem rede externa**: DummyJSON e câmbio interceptados com `page.route` (`e2e/fixtures/mock-api.ts`); só `e2e/real/smoke.spec.ts` usa a API real (`yarn e2e:real`), para o CI não falhar por instabilidade de terceiros.
-- ⬜ **Repositório Git público**, GitHub Pages (source: Actions) e proteção da `main` (PR + check `test`) — requisito 10; passos em "Passos manuais no GitHub".
+- ✅ **Repositório Git público**, GitHub Pages (source: Actions) e proteção da `main` (PR + checks `test` e `lighthouse`) — requisito 10; ver "Configuração no GitHub".
 
 **Média prioridade**
 - ✅ Validar `exp` do JWT no cliente (ver "Robustez e qualidade"). **Risco registrado:** guardar o token em `localStorage` o expõe a XSS; é aceitável aqui (exigência do enunciado, API pública) e mitigado por não renderizarmos HTML de terceiros nem usarmos `dangerouslySetInnerHTML`. Em produção real, preferir cookie `HttpOnly` emitido pelo backend.
