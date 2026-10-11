@@ -47,6 +47,58 @@ describe("useCart", () => {
     expect(result.current.totalPrice).toBe(0);
   });
 
+  describe("limite de estoque", () => {
+    const limited: Product = { ...product, id: 7, stock: 3 };
+
+    it("adicionar repetidamente nunca passa do estoque", () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      for (let i = 0; i < 5; i++) act(() => result.current.addItem(limited));
+      expect(result.current.items[0].quantity).toBe(3);
+      expect(result.current.totalItems).toBe(3);
+    });
+
+    it("a quantidade inicial acima do estoque é reduzida ao estoque", () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      act(() => result.current.addItem(limited, 10));
+      expect(result.current.items[0].quantity).toBe(3);
+    });
+
+    it("setQuantity (campo da página do carrinho) também respeita o estoque", () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      act(() => result.current.addItem(limited));
+      act(() => result.current.setQuantity(7, 99));
+      expect(result.current.items[0].quantity).toBe(3);
+      expect(result.current.summary.subtotal).toBe(30);
+    });
+
+    it("produto esgotado (estoque 0) não entra no carrinho", () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      act(() => result.current.addItem({ ...product, id: 8, stock: 0 }));
+      expect(result.current.items).toEqual([]);
+    });
+
+    it("sem estoque informado não há limite (carrinhos de versões antigas)", () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      act(() => result.current.addItem(product, 50));
+      act(() => result.current.setQuantity(1, 99));
+      expect(result.current.items[0].quantity).toBe(99);
+    });
+
+    it("restaurar um item removido não ultrapassa o estoque", () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      act(() => result.current.addItem(limited, 2));
+      const item = result.current.items[0];
+      act(() => result.current.restoreItems([{ item, index: 0 }])); // soma 2 + 2 = 4 > 3
+      expect(result.current.items[0].quantity).toBe(3);
+    });
+
+    it("o estoque fica guardado no item salvo", () => {
+      const { result } = renderHook(() => useCart(), { wrapper });
+      act(() => result.current.addItem(limited));
+      expect(JSON.parse(localStorage.getItem(CART_KEY)!)[0].stock).toBe(3);
+    });
+  });
+
   it("persiste no localStorage e ignora dados corrompidos", () => {
     const { result, unmount } = renderHook(() => useCart(), { wrapper });
     act(() => result.current.addItem(product));

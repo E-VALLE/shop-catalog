@@ -66,6 +66,7 @@ test.describe("acessibilidade (axe, WCAG 2.1 A/AA)", () => {
   });
 
   test("Área administrativa (dashboard e lista de produtos)", async ({ page }) => {
+    test.slow(); // dois conjuntos de gráficos/tabelas na mesma análise: lento em máquinas carregadas
     await signIn(page);
     await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();
     await expectNoViolations(page);
@@ -80,6 +81,8 @@ test.describe("acessibilidade (axe, WCAG 2.1 A/AA)", () => {
     await page.getByRole("button", { name: /Idioma/ }).click();
     await page.getByRole("menuitem", { name: "English" }).click();
     await expect(page.getByRole("heading", { name: "Products", level: 1 })).toBeVisible();
+    // o menu de idioma ainda está fechando: o axe o veria pela metade (aria-required-children, contraste)
+    await expect(page.getByRole("menu")).toHaveCount(0);
     await expectNoViolations(page);
   });
 });

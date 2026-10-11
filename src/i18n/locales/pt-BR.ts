@@ -11,6 +11,7 @@ const ptBR = {
   },
   errors: {
     network: "Não foi possível conectar ao servidor. Verifique sua conexão.",
+    notFound: "Produto não encontrado. Ele pode ter sido removido ou o endereço está incorreto.",
     generic: "Ocorreu um erro inesperado. Tente novamente.",
     boundaryTitle: "Não foi possível exibir esta página",
     boundaryBody: "Ocorreu um erro inesperado ou o carregamento falhou. Tente novamente.",
@@ -126,6 +127,9 @@ const ptBR = {
     decrease: "Diminuir quantidade de {{title}}",
     increase: "Aumentar quantidade de {{title}}",
     maxStock: "Quantidade máxima em estoque",
+    backToCatalog: "Ver todos os produtos",
+    stockLimitedTitle: "Estoque limitado",
+    stockLimited: "O carrinho tem o máximo disponível: {{count}} unidade(s) deste produto.",
     gallery: "Imagens do produto",
     galleryThumb: "Ver imagem {{index}} de {{total}}",
     readMore: "Ler mais",

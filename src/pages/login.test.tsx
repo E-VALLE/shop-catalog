@@ -87,8 +87,15 @@ describe("Login", () => {
     await userEvent.type(screen.getByLabelText(/senha/i), "wrongpass");
     await userEvent.click(screen.getByRole("button", { name: /entrar/i }));
 
+    // um único alerta acima do formulário (não repetido sob cada campo)
     await waitFor(() =>
-      expect(screen.getAllByText("Usuário ou senha inválidos").length).toBeGreaterThan(0),
+      expect(
+        screen
+          .getAllByRole("alert")
+          .filter((el) => el.textContent?.includes("Usuário ou senha inválidos")),
+      ).toHaveLength(1),
     );
+    expect(screen.getAllByText("Usuário ou senha inválidos")).toHaveLength(1);
+    await waitFor(() => expect(screen.getByLabelText(/usuário/i)).not.toBeInvalid());
   });
 });

@@ -97,7 +97,7 @@ export function Dashboard() {
         </Group>
 
         {state.status === "loading" && <LoadingState />}
-        {state.status === "error" && <ErrorState message={state.error} />}
+        {state.status === "error" && <ErrorState message={state.error} onRetry={state.retry} />}
         {state.status === "success" && (
           <SimpleGrid cols={{ base: 1, xs: 2, md: 4 }}>
             <Metric

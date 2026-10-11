@@ -110,7 +110,9 @@ export function Home() {
           {promotions.status === "loading" && (
             <ProductGridSkeleton count={4} label={t("common.loading")} />
           )}
-          {promotions.status === "error" && <ErrorState message={promotions.error} />}
+          {promotions.status === "error" && (
+            <ErrorState message={promotions.error} onRetry={promotions.retry} />
+          )}
           {promotions.status === "success" && <ProductGrid products={promotions.data} />}
         </Stack>
 
@@ -124,7 +126,9 @@ export function Home() {
           {featured.status === "loading" && (
             <ProductGridSkeleton count={4} label={t("common.loading")} />
           )}
-          {featured.status === "error" && <ErrorState message={featured.error} />}
+          {featured.status === "error" && (
+            <ErrorState message={featured.error} onRetry={featured.retry} />
+          )}
           {featured.status === "success" && <ProductGrid products={featured.data.products} />}
         </Stack>
         <RecentlyViewed />

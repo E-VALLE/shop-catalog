@@ -279,7 +279,9 @@ export function AdminProducts() {
           </Group>
         )}
 
-        {products.status === "error" && <ErrorState message={products.error} />}
+        {products.status === "error" && (
+          <ErrorState message={products.error} onRetry={products.retry} />
+        )}
 
         <Box pos="relative" mih={200}>
           <LoadingOverlay visible={products.status === "loading"} />

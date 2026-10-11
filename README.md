@@ -58,8 +58,8 @@ Rede com proxy/antivírus que impede `yarn playwright install`? Use um navegador
 5. **Mantine UI** — `MantineProvider` + tema, `AppShell` responsivo, `SimpleGrid`, `Card`, `Pagination`, `Table`, `LoadingOverlay`/`Loader`, `@mantine/form` (login e produto), `@mantine/modals` (confirmações), `@mantine/notifications`, ícones Tabler. Segue `anexos/ui-skill.md`.
 6. **Autenticação JWT** — `POST /auth/login`; `accessToken` em `localStorage`, estado no `AuthContext`, `/admin/*` redireciona para `/login` (voltando ao destino original) e 401 derruba a sessão. Só o papel `admin` (lido de `/auth/me`) acessa `/admin/*`; clientes veem "Acesso restrito" (ver Pacote 10).
 7. **API, interceptors e Zod** — `src/services/api.ts` (`baseURL` DummyJSON): interceptor de requisição injeta `Authorization: Bearer`; de resposta mostra notificação amigável (rede/erro) e dispara logout em 401. Schemas Zod em `src/schemas`, tipos via `z.infer`, respostas validadas com `safeParse` (`products-service.ts`) e formulários com `zod4Resolver` (Zod 4 exige `zod4Resolver`, não `zodResolver`).
-8. **Vitest + RTL** — `yarn test:run`: **568 testes em 55 arquivos** (schemas com casos de borda, carrinho, debounce, `useAuth` e papéis, `ProtectedRoute`, Login, Produtos, checkout e pagamento, admin, serviços e interceptors, helpers puros). Cobertura 95,2% statements / 92,3% branches / 93,1% funções / 96,5% linhas, com limiares no CI. Consultas por `getByRole`/`getByLabelText`, `user-event`, wrapper `renderWithProviders` com contextos em memória (`MemoryRouter`).
-9. **Playwright** — `e2e/auth.spec.ts` (bloqueio, redirecionamento pós-login, credencial inválida, logout) e `e2e/catalog.spec.ts` (busca → detalhes → carrinho, paginação, link direto e id inválido), além de papéis, checkout/pagamento, admin, PWA e acessibilidade (axe em claro e escuro): **134 testes** com a API interceptada, mais 1 smoke contra a API real e 10 de regressão visual (local). Localizadores semânticos, headless.
+8. **Vitest + RTL** — `yarn test:run`: **585 testes em 57 arquivos** (schemas com casos de borda, carrinho, debounce, `useAuth` e papéis, `ProtectedRoute`, Login, Produtos, checkout e pagamento, admin, serviços e interceptors, helpers puros). Cobertura 95,2% statements / 92,2% branches / 93,2% funções / 96,5% linhas, com limiares no CI. Consultas por `getByRole`/`getByLabelText`, `user-event`, wrapper `renderWithProviders` com contextos em memória (`MemoryRouter`).
+9. **Playwright** — `e2e/auth.spec.ts` (bloqueio, redirecionamento pós-login, credencial inválida, logout) e `e2e/catalog.spec.ts` (busca → detalhes → carrinho, paginação, link direto e id inválido), além de papéis, checkout/pagamento, admin, PWA e acessibilidade (axe em claro e escuro): **143 testes** com a API interceptada, mais 1 smoke contra a API real e 10 de regressão visual (local). Localizadores semânticos, headless.
 10. **CI/CD** — `.github/workflows/ci.yml` (push/PR: `yarn install --frozen-lockfile`, Prettier, tsc, lint, Vitest com cobertura, Playwright e um job `lighthouse`) e `deploy.yml` (build → `cp dist/index.html dist/404.html` → GitHub Pages). `base: '/shop-catalog/'` no `vite.config.ts` e `BrowserRouter basename`.
 
 ### Configuração no GitHub (feita)
@@ -344,6 +344,24 @@ Acessibilidade: grupo de rádio com rótulo, foco no título a cada etapa, ilust
 
 Testes: `helpers/payment.test.ts` (descontos, parcelas, códigos), `pages/checkout.test.tsx`, `e2e/payment.spec.ts` (campos de cartão inexistentes, descontos, fluxo completo, login retoma o checkout, axe em todas as etapas) e regressão visual `e2e/visual/checkout.spec.ts` (claro/escuro). Ajustados `checkout.spec.ts`, `roles.spec.ts`, `cart.test.tsx` e `order-summary.test.tsx`, que dependiam do modal.
 
+## Pacote 12: revisão externa (11/10/2026)
+
+Um colega analisou a aplicação publicada com apoio de um agente de IA (suíte do projeto + 36 testes exploratórios, em Chromium/Linux, API interceptada pelo mock do projeto). O relatório confirmou os resultados do projeto (572 testes unitários e 135 de 136 e2e passando no commit `8deeb33`, bundle publicado idêntico ao local) e apontou os itens abaixo. **Cada um foi reproduzido no código antes de ser corrigido**, e todos são reais:
+
+| ID | Achado | Correção | Motivo |
+| --- | --- | --- | --- |
+| **D1** (alta) | O carrinho aceitava qualquer quantidade, acima do estoque, até o checkout (5 cliques em "Adicionar" no produto de 3 unidades davam 5; digitar 99 no carrinho era aceito) | O item do carrinho guarda o `stock`; `addItem`, `setQuantity` e `restoreItems` (desfazer) limitam a quantidade com `Math.min`; produto esgotado não entra; o campo da página do carrinho tem `max`; os detalhes avisam "Estoque limitado" quando a quantidade pedida foi reduzida | Antes só o botão "+" dos cards checava o estoque. A regra agora está no **contexto do carrinho** (fonte única), então nenhuma tela consegue furá-la. Carrinhos salvos por versões antigas (sem `stock`) continuam sem limite. |
+| **D2** | Telas de erro diziam "Tente novamente" mas não tinham o botão | `useApiQuery` passou a devolver `retry` (o `refetch`) no estado de erro e as 9 telas passam `onRetry` ao `ErrorState` | O componente já suportava o botão; faltava ligá-lo. |
+| **D3** | `/produtos/99999` mostrava o texto cru da API em inglês e `/produtos/abc` uma mensagem genérica | `NotFoundError` (id inválido) e qualquer 404 viram "Produto não encontrado…" traduzido; a página oferece "Ver todos os produtos" | Interface em português com erro em inglês quebra a consistência; faltava caminho de volta. O toast do interceptor continua aparecendo junto com a mensagem da página (comportamento antigo, mantido). |
+| **D4** | A tela de login não tinha região `main` nem "Pular para o conteúdo" | `AuthLayout` usa o mesmo `SkipLink` e `<main id="main-content">` das demais páginas | O axe não acusa (são "boas práticas", fora das tags WCAG que usamos), mas a navegação por teclado ficava inconsistente. |
+| **D5** | Credencial errada mostrava a mesma mensagem sob os dois campos (anunciada duas vezes) | Um único `Alert` (`role="alert"`) acima do formulário | Leitor de tela anuncia uma vez; a mensagem não diz qual campo está errado, o que também é melhor para segurança. |
+| **T1** | Teste "Em inglês" instável (falhava em 4 de 10 execuções) | Espera o menu de idioma fechar antes de rodar o axe | Defeito do teste, não do site: o axe via o menu pela metade. 10 de 10 depois da correção. |
+| Engines | A instalação falhava em Node 22.22.0 | `engines.node` passou a `>=22.22.2`, o que o jsdom 30 exige | O CI usa o Node 22 mais recente (`.nvmrc`), então não era afetado, mas quem instalasse com 22.22.0 recebia erro confuso. |
+
+**Não adotado:** dividir o bundle principal (687 kB) com import dinâmico (sugestão opcional do relatório). Já investigado no "Pacote 8": é framework (react-dom, Mantine) e não se divide por rota.
+
+Testes novos: `cart-provider.test.tsx` (limite de estoque, 7 casos), `products.test.tsx` (tentar novamente), `login.test.tsx` (alerta único), `auth-layout.test.tsx` (main e link de pular), `api.test.ts` (404 e id inválido) e `e2e/review-fixes.spec.ts` (os cinco defeitos de ponta a ponta). O teste de id inválido em `catalog.spec.ts` esperava o texto genérico antigo e foi atualizado.
+
 ## Edge cases cobertos
 
 Login vazio/senha curta/credencial inválida (400); busca sem resultados; resposta da API fora do schema; `id` inválido em `/produtos/:id`; quantidade 0/negativa no carrinho e carrinho corrompido no localStorage; preço ≤ 0, estoque negativo/fracionado e título vazio no formulário; token sem usuário salvo; página fora do intervalo.
@@ -395,7 +413,7 @@ Resultado da revisão sênior (requisitos × boas práticas). Itens marcados ✅
 
 ## Verificação e pontos em aberto
 
-**Última verificação completa (10/10/2026):** Prettier, `tsc` e ESLint limpos; Vitest 568 testes (cobertura 95,2% / 92,3% / 93,1% / 96,5%); e2e 134 testes; regressão visual 10 testes; smoke com a API real (login + papel); `yarn audit` sem vulnerabilidades nas dependências de produção.
+**Última verificação completa (11/10/2026):** Prettier, `tsc` e ESLint limpos; Vitest 585 testes (cobertura 95,2% / 92,2% / 93,2% / 96,5%); e2e 143 testes; regressão visual 10 testes; smoke com a API real (login + papel); `yarn audit` sem vulnerabilidades nas dependências de produção.
 
 **No site publicado (GitHub Pages, 10/10/2026):** a suíte e2e inteira roda contra a URL pública (`E2E_BASE_URL=... yarn e2e`): 135 de 136 passaram na primeira rodada; a falha era uma corrida do próprio teste (lia a lista antes de ela renderizar), corrigida e repetida 6 vezes sem erro. Smoke com a API real passou. Lighthouse na URL pública: acessibilidade 0,95, melhores práticas 1,0, SEO 0,9, CLS 0 e desempenho 0,42–0,44. Links diretos (ex.: `/produtos/4`) respondem com o `404.html` do Pages, que é a própria SPA, então abrem normalmente (o status HTTP 404 é uma limitação do Pages).
 

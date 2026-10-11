@@ -8,6 +8,8 @@ export const cartItemSchema = z.object({
   /** Preço de tabela (antes do desconto); ausente em carrinhos salvos por versões antigas. */
   listPrice: z.number().optional(),
   thumbnail: z.string(),
+  /** Estoque conhecido do produto: limita a quantidade; ausente em carrinhos de versões antigas. */
+  stock: z.number().int().nonnegative().optional(),
   quantity: z.number().int().positive(),
 });
 

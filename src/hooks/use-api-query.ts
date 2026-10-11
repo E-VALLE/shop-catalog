@@ -4,7 +4,7 @@ import { getApiErrorMessage } from "../services/api";
 export type AsyncState<T> =
   | { status: "loading"; data: null; error: null }
   | { status: "success"; data: T; error: null }
-  | { status: "error"; data: null; error: string };
+  | { status: "error"; data: null; error: string; retry: () => void };
 
 interface ApiQueryOptions {
   enabled?: boolean;
@@ -29,7 +29,12 @@ export function useApiQuery<T>(
   });
 
   if (query.isError) {
-    return { status: "error", data: null, error: getApiErrorMessage(query.error) };
+    return {
+      status: "error",
+      data: null,
+      error: getApiErrorMessage(query.error),
+      retry: () => void query.refetch(),
+    };
   }
   if (query.isSuccess) return { status: "success", data: query.data, error: null };
   return { status: "loading", data: null, error: null };

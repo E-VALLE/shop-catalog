@@ -12,6 +12,7 @@ const en: Translation = {
     backToStore: "Back to the store",
   },
   errors: {
+    notFound: "Product not found. It may have been removed or the address is wrong.",
     network: "Could not reach the server. Check your connection.",
     generic: "An unexpected error occurred. Please try again.",
     boundaryTitle: "This page could not be displayed",
@@ -127,6 +128,9 @@ const en: Translation = {
     decrease: "Decrease quantity of {{title}}",
     increase: "Increase quantity of {{title}}",
     maxStock: "Maximum quantity in stock",
+    backToCatalog: "See all products",
+    stockLimitedTitle: "Limited stock",
+    stockLimited: "Your cart has the maximum available: {{count}} unit(s) of this product.",
     gallery: "Product images",
     galleryThumb: "View image {{index}} of {{total}}",
     readMore: "Read more",

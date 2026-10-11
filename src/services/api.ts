@@ -11,11 +11,22 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+/** Recurso inexistente ou identificador inválido (ex.: /produtos/abc). */
+export class NotFoundError extends Error {
+  constructor() {
+    super("Não encontrado");
+    this.name = "NotFoundError";
+  }
+}
+
 export function getApiErrorMessage(error: unknown): string {
+  if (error instanceof NotFoundError) return i18n.t("errors.notFound");
   if (isAxiosError(error)) {
     if (!error.response) {
       return i18n.t("errors.network");
     }
+    // A mensagem da API para 404 vem em inglês ("Product with id '9' not found").
+    if (error.response.status === 404) return i18n.t("errors.notFound");
     const body = apiErrorSchema.safeParse(error.response.data);
     if (body.success) return body.data.message;
   }

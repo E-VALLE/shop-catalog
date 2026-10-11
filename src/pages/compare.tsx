@@ -78,7 +78,9 @@ export function Compare() {
           </EmptyState>
         )}
         {!empty && catalog.status === "loading" && <LoadingState />}
-        {!empty && catalog.status === "error" && <ErrorState message={catalog.error} />}
+        {!empty && catalog.status === "error" && (
+          <ErrorState message={catalog.error} onRetry={catalog.retry} />
+        )}
 
         {products.length === 1 && (
           <Text role="status" c="dimmed">

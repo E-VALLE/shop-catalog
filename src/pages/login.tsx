@@ -1,7 +1,7 @@
 import { Alert, Button, Card, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { IconInfoCircle, IconLock, IconUser } from "@tabler/icons-react";
+import { IconAlertCircle, IconInfoCircle, IconLock, IconUser } from "@tabler/icons-react";
 import { isAxiosError } from "axios";
 import { zod4Resolver } from "mantine-form-zod-resolver";
 import { useState } from "react";
@@ -27,6 +27,8 @@ export function Login() {
   // Repassa a intenção de checkout para a rota de destino retomar a compra.
   const returnState = fromCheckout ? { checkout: true } : undefined;
   const [submitting, setSubmitting] = useState(false);
+  // Credencial recusada: um único alerta acima do formulário (não repetido sob cada campo).
+  const [credentialsError, setCredentialsError] = useState(false);
 
   const form = useForm<LoginValues>({
     mode: "uncontrolled",
@@ -38,16 +40,14 @@ export function Login() {
 
   const handleSubmit = async (values: LoginValues) => {
     setSubmitting(true);
+    setCredentialsError(false);
     try {
       const signedIn = await signIn(values);
       notifications.show({ message: t("login.success"), color: "green" });
       navigate(locationState.from ?? homeFor(signedIn.role), { replace: true, state: returnState });
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 400) {
-        form.setErrors({
-          username: t("login.invalid"),
-          password: t("login.invalid"),
-        });
+        setCredentialsError(true);
       } else {
         notifications.show({
           title: t("login.errorTitle"),
@@ -95,6 +95,11 @@ export function Login() {
           </Text>
         </Stack>
       </Alert>
+      {credentialsError && (
+        <Alert color="red" icon={<IconAlertCircle size={20} />} role="alert">
+          <Text size="sm">{t("login.invalid")}</Text>
+        </Alert>
+      )}
       <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
         <Stack>
           <TextInput
