@@ -36,6 +36,19 @@ describe("Products", () => {
     expect(screen.getByRole("article", { name: "Perfume" })).toBeInTheDocument();
   });
 
+  it("na falha mostra 'Tentar novamente' e a lista volta ao clicar", async () => {
+    const list = vi
+      .spyOn(productsService, "listProducts")
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockResolvedValue({ products: [make(1, "Batom")], total: 1, skip: 0, limit: 12 });
+    renderWithProviders(<Products />);
+
+    const retry = await screen.findByRole("button", { name: "Tentar novamente" });
+    await userEvent.click(retry);
+    expect(await screen.findByRole("article", { name: "Batom" })).toBeInTheDocument();
+    expect(list).toHaveBeenCalledTimes(2);
+  });
+
   it("mostra estado vazio quando a busca não retorna resultados", async () => {
     vi.spyOn(productsService, "listProducts").mockResolvedValue({
       products: [],

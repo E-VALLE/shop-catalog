@@ -125,7 +125,9 @@ export function Products() {
         )}
 
         {products.status === "loading" && <ProductGridSkeleton label={t("products.loading")} />}
-        {products.status === "error" && <ErrorState message={products.error} />}
+        {products.status === "error" && (
+          <ErrorState message={products.error} onRetry={products.retry} />
+        )}
         {products.status === "success" && products.data.products.length === 0 && (
           <EmptyState title={t("products.none")}>
             <Text size="sm" c="dimmed">

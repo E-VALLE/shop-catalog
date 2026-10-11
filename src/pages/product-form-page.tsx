@@ -12,7 +12,7 @@ import { useApiQuery } from "../hooks/use-api-query";
 import { useCategories } from "../hooks/use-categories";
 import type { Product, ProductFormValues } from "../schemas/product-schema";
 import { PANEL_BG } from "../theme/surfaces";
-import { getApiErrorMessage } from "../services/api";
+import { NotFoundError, getApiErrorMessage } from "../services/api";
 import { createProduct, getProduct, updateProduct } from "../services/products-service";
 
 export function ProductFormPage() {
@@ -32,7 +32,7 @@ export function ProductFormPage() {
     ["product-form", id],
     async (signal) => {
       if (id !== null && !validRemoteId && !(id >= LOCAL_ID_START)) {
-        throw new Error("Identificador de produto inválido.");
+        throw new NotFoundError();
       }
       return validRemoteId ? getProduct(id, signal) : null;
     },
@@ -80,6 +80,13 @@ export function ProductFormPage() {
       : isEdit && !localProduct && remote.status === "error"
         ? remote.error
         : null;
+  // "Tentar novamente" refaz a consulta que falhou (categorias ou produto).
+  const retry =
+    categories.status === "error"
+      ? categories.retry
+      : remote.status === "error"
+        ? remote.retry
+        : undefined;
 
   return (
     <Container size="sm" py="xl">
@@ -89,7 +96,7 @@ export function ProductFormPage() {
           {t("form.simulatedNote")}
         </Text>
         {loading && <LoadingState />}
-        {error && <ErrorState message={error} />}
+        {error && <ErrorState message={error} onRetry={retry} />}
         {!loading && !error && categories.status === "success" && (
           <Card bg={PANEL_BG}>
             <ProductForm

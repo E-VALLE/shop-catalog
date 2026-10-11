@@ -72,6 +72,7 @@ export function Cart() {
                     <NumberInput
                       aria-label={t("cart.quantityAria", { title: item.title })}
                       min={0}
+                      max={item.stock}
                       allowDecimal={false}
                       allowNegative={false}
                       value={item.quantity}

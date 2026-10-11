@@ -40,6 +40,6 @@ test.describe("catálogo e carrinho", () => {
 
     await page.goto("produtos/abc");
     await expect(page.getByText("Identificador de produto inválido.")).toBeHidden();
-    await expect(page.getByText(/erro inesperado/i)).toBeVisible();
+    await expect(page.getByText(/Produto não encontrado/).first()).toBeVisible();
   });
 });

@@ -45,7 +45,7 @@ export function ProductDetails() {
   }, [viewedId, record]);
   const scheme = useComputedColorScheme("light");
   useDocumentTitle(state.status === "success" ? state.data.title : null);
-  const { addItem } = useCart();
+  const { items, addItem } = useCart();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState<number | string>(1);
 
@@ -63,7 +63,14 @@ export function ProductDetails() {
         </Group>
 
         {state.status === "loading" && <ProductDetailsSkeleton label={t("product.loading")} />}
-        {state.status === "error" && <ErrorState message={state.error} />}
+        {state.status === "error" && (
+          <Stack align="flex-start">
+            <ErrorState message={state.error} onRetry={state.retry} />
+            <Button component={Link} to="/produtos" variant="light">
+              {t("product.backToCatalog")}
+            </Button>
+          </Stack>
+        )}
         {state.status === "success" &&
           (() => {
             const product = state.data;
@@ -72,8 +79,18 @@ export function ProductDetails() {
             const status = stockStatus(product.stock);
             const qty = typeof quantity === "number" && quantity >= 1 ? quantity : 1;
 
+            const inCart = items.find((item) => item.id === product.id)?.quantity ?? 0;
             const handleAdd = () => {
               addItem(product, qty);
+              // O carrinho nunca passa do estoque: avisa quando a quantidade pedida foi limitada.
+              if (product.stock !== undefined && inCart + qty > product.stock) {
+                notifications.show({
+                  title: t("product.stockLimitedTitle"),
+                  message: t("product.stockLimited", { count: product.stock }),
+                  color: "orange",
+                });
+                return;
+              }
               notifications.show({
                 title: t("product.added"),
                 message: t("product.addedMessage", { quantity: qty, title: product.title }),

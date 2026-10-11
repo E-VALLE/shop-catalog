@@ -5,7 +5,7 @@ import {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
-import { TOKEN_KEY, UNAUTHORIZED_EVENT, api, getApiErrorMessage } from "./api";
+import { NotFoundError, TOKEN_KEY, UNAUTHORIZED_EVENT, api, getApiErrorMessage } from "./api";
 
 type Reply = { status: number; data?: unknown } | "network-error";
 
@@ -128,10 +128,22 @@ describe("api: interceptors", () => {
 describe("getApiErrorMessage", () => {
   it("usa a mensagem da API quando válida", () => {
     const error = new AxiosError("x", "E", undefined, undefined, {
+      status: 400,
+      data: { message: "Invalid credentials" },
+    } as AxiosResponse);
+    expect(getApiErrorMessage(error)).toBe("Invalid credentials");
+  });
+
+  it("404 vira mensagem traduzida em vez do texto em inglês da API", () => {
+    const error = new AxiosError("x", "E", undefined, undefined, {
       status: 404,
       data: { message: "Product with id '999' not found" },
     } as AxiosResponse);
-    expect(getApiErrorMessage(error)).toBe("Product with id '999' not found");
+    expect(getApiErrorMessage(error)).toMatch(/Produto não encontrado/);
+  });
+
+  it("NotFoundError (id inválido) também vira 'Produto não encontrado'", () => {
+    expect(getApiErrorMessage(new NotFoundError())).toMatch(/Produto não encontrado/);
   });
 
   it.each([new Error("x"), "texto", null, undefined])(

@@ -1,5 +1,6 @@
 import { useParams } from "react-router";
 import type { Product } from "../schemas/product-schema";
+import { NotFoundError } from "../services/api";
 import { getProduct } from "../services/products-service";
 import { useApiQuery, type AsyncState } from "./use-api-query";
 
@@ -11,9 +12,7 @@ export function useProductDetails(): {
   const { id: rawId } = useParams<{ id: string }>();
   const id = Number(rawId);
   const state = useApiQuery(["product", id], (signal) =>
-    Number.isInteger(id) && id > 0
-      ? getProduct(id, signal)
-      : Promise.reject(new Error("Identificador de produto inválido.")),
+    Number.isInteger(id) && id > 0 ? getProduct(id, signal) : Promise.reject(new NotFoundError()),
   );
   return { id, state };
 }

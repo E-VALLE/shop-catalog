@@ -46,7 +46,9 @@ export function Favorites() {
         {count > 0 && catalog.status === "loading" && (
           <ProductGridSkeleton count={Math.min(count, 8)} label={t("common.loading")} />
         )}
-        {count > 0 && catalog.status === "error" && <ErrorState message={catalog.error} />}
+        {count > 0 && catalog.status === "error" && (
+          <ErrorState message={catalog.error} onRetry={catalog.retry} />
+        )}
         {catalog.status === "success" && products.length > 0 && <ProductGrid products={products} />}
       </Stack>
     </Container>

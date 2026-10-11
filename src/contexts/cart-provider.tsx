@@ -29,6 +29,10 @@ function readStoredCoupon(): string | null {
   }
 }
 
+/** Limita a quantidade ao estoque conhecido (sem estoque informado, não há limite). */
+const clampToStock = (quantity: number, stock: number | undefined) =>
+  stock === undefined ? quantity : Math.min(quantity, stock);
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(readStoredCart);
   const [couponCode, setCouponCode] = useState<string | null>(readStoredCoupon);
@@ -63,10 +67,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((current) => {
       const existing = current.find((item) => item.id === product.id);
       if (existing) {
+        const limit = product.stock ?? existing.stock;
         return current.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item,
+          item.id === product.id
+            ? { ...item, stock: limit, quantity: clampToStock(item.quantity + quantity, limit) }
+            : item,
         );
       }
+      const clamped = clampToStock(quantity, product.stock);
+      if (clamped < 1) return current; // sem estoque: nada a adicionar
       return [
         ...current,
         {
@@ -75,7 +84,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           price: discountedPrice(product.price, product.discountPercentage),
           listPrice: product.price,
           thumbnail: product.thumbnail,
-          quantity,
+          stock: product.stock,
+          quantity: clamped,
         },
       ];
     });
@@ -85,7 +95,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((current) =>
       quantity < 1
         ? current.filter((item) => item.id !== id)
-        : current.map((item) => (item.id === id ? { ...item, quantity } : item)),
+        : current.map((item) =>
+            item.id === id ? { ...item, quantity: clampToStock(quantity, item.stock) } : item,
+          ),
     );
   }, []);
 
@@ -101,7 +113,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       for (const { item, index } of [...entries].sort((a, b) => a.index - b.index)) {
         const existing = next.findIndex((candidate) => candidate.id === item.id);
         if (existing >= 0) {
-          next[existing] = { ...next[existing], quantity: next[existing].quantity + item.quantity };
+          const merged = next[existing];
+          next[existing] = {
+            ...merged,
+            quantity: clampToStock(merged.quantity + item.quantity, merged.stock),
+          };
         } else {
           next.splice(Math.min(index, next.length), 0, item);
         }
